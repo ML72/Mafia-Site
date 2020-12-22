@@ -1,0 +1,77 @@
+<%# Page for players to play games %>
+
+<%- include("./partials/header") -%>
+
+<script>
+
+	$(document).ready(function () {
+        
+        function removeAllChildren(selector) {
+            const parent = document.querySelector(selector);
+            while (parent.firstChild) {
+                parent.removeChild(parent.firstChild);
+            }
+        }
+
+        setInterval(() => {
+            
+            let code = $("#code").val();
+
+            $.get("/api/guestUpdate", { code }, async (data) => {
+                
+                let { players, roles } = data;
+
+                // update players
+                await removeAllChildren("#players");
+                
+                if(players.length < 1) {
+                    players = [ "No Players" ];
+                }
+
+                players.forEach((player) => {
+                    $("#players").append('<p class="text-center">' + player + '</p>');
+                });
+
+                // update roles
+                await removeAllChildren("#roles");
+
+                for (const [role, number] of Object.entries(roles)) {
+                    $("#roles").append('<p class="text-center">' + role.toUpperCase() + ' - ' + number + '</p>');
+                }
+            });
+
+        }, 1000);
+
+	});
+</script>
+
+<h2 class="display-3 text-center mt-5 mb-2">Play Mafia</h2>
+
+<div class="jumbotron container">
+
+    <h1 class="text-center">Code: <span class="badge badge-pill badge-primary"><%= code %></span></h1>
+    <h3 class="text-center">Waiting for host...</h3>
+    <input type="hidden" id="code" value="<%= code %>">
+
+    <div class="container mt-3">
+
+        <div class="row">
+            <div class="col-12 col-lg-6 mt-2">
+                <div class="container custom-rounded bg-white pb-5">
+                    <h1 class="text-center">Players in Lobby:</h1>
+                    <div id="players"></div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6 mt-2">
+                <div class="container custom-rounded bg-white pb-3">
+                    <h1 class="text-center">Roles:</h1>
+                    <div id="roles"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<%- include("./partials/footer") -%>

@@ -9,7 +9,56 @@ var rooms = new cache.Cache();
 
 
 
-// LISTEN TO GET ROUTES
+// LISTEN TO API ROUTES
+app.get("/api/hostUpdate", async (req, res) => {
+
+    let { roles, code } = req.query;
+    roles = JSON.parse(roles);
+    let room = await rooms.get(code);
+
+    if(room) {
+        
+        Object.keys(roles).forEach((role) => {
+            if(parseInt(roles[role]) < 0) {
+                roles[role] = "" + 0;
+            }
+        });
+
+        room = {
+            players: room.players,
+            roles: roles
+        }
+
+        rooms.put(code, room, 6*60*60*1000, function(key, value) {
+            console.log('Room with code ' + code + ' has closed');
+        });
+
+        res.json(room);
+    } else {
+        res.json({
+            players: []
+        });
+    }
+});
+
+app.get("/api/guestUpdate", async (req, res) => {
+
+    let { code } = req.query;
+    let room = await rooms.get(code);
+
+    if(room) {
+        res.json(room);
+    } else {
+        res.json({
+            players: [],
+            roles: {}
+        });
+    }
+});
+
+
+
+// LISTEN TO VIEW ROUTES
 app.get("/", (req, res) => {
     res.render(__dirname + '/views/landing.ejs');
 });
@@ -23,9 +72,9 @@ app.get("/new", (req, res) => {
     }
 
     // store code as new game in memory cache
-    cache.put(code, {
+    rooms.put(code, {
         roles: {},
-        players: {}
+        players: []
     }, 6*60*60*1000, function(key, value) {
         console.log('Room with code ' + code + ' has closed');
     });
@@ -38,7 +87,32 @@ app.get("/new", (req, res) => {
 
 app.get("/join", (req, res) => {
 
-    res.render(__dirname + '/views/join.ejs');
+    res.render(__dirname + '/views/join.ejs', { pageName: "Join Game", code: null, name: "" });
+});
+
+app.get("/game/:code", (req, res) => {
+
+    let { code } = req.params;
+    let { name } = req.query;
+
+    let room = rooms.get('' + code);
+    if(!name) {
+        name = "Player" + Math.floor(Math.random() * 1000);
+    }
+
+    if(!room) {
+        res.render(__dirname + '/views/join.ejs', { pageName: "Join Game", code, name });
+    } else {
+
+        rooms.put(code, {
+            roles: room.roles,
+            players: [ name, ...room.players ]
+        }, 6*60*60*1000, function(key, value) {
+            console.log('Room with code ' + code + ' has closed');
+        });
+    
+        res.render(__dirname + '/views/guest.ejs', { pageName: "Game " + code, code });
+    }
 });
 
 app.get("*", (req, res) => {
