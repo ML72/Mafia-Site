@@ -1,12 +1,38 @@
-<%# Page for game hosts to host games %>
+<%# Page for players to join games %>
 
 <%- include("./partials/header") -%>
+
+<script>
+	$(document).ready(function () {
+		$("#submit").click(function () {
+			
+            let code = $("#code").val();
+            let name = $("#name").val();
+            window.location.href = "/game/" + code + "?name=" + name;
+		});
+	});
+</script>
 
 <h2 class="display-3 text-center mt-5 mb-2">Join Game</h2>
 
 <div class="jumbotron container">
 
-    <h1 class="text-center">Enter Code: <span class="badge badge-pill badge-primary"><%= code %></span></h1>
+    <% if(code) { %>
+        <div class="alert alert-danger" role="alert">
+            No game was found for the code <%= code %>
+        </div>
+    <% } %>
+
+    <input class="form-control form-control-lg my-2" type="text" placeholder="Your Name" id="name" maxlength="25" value="<%= name %>">
+
+    <div class="row">
+        <div class="col-md-10">
+            <input class="form-control form-control-lg my-2" type="number" placeholder="Enter Code" id="code">
+        </div>
+        <div class="col-md-2">
+            <input class="btn btn-primary btn-lg btn-block my-2" value="Join" type="button" id="submit">
+        </div>
+    </div>
 
 </div>
 
