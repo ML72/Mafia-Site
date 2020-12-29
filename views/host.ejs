@@ -6,6 +6,7 @@
 
 	$(document).ready(function () {
         
+        // function for removing all children
         function removeAllChildren(selector) {
             const parent = document.querySelector(selector);
             while (parent.firstChild) {
@@ -13,6 +14,38 @@
             }
         }
 
+        // ask backend to create roles
+        $("#create-roles").click(function () {
+
+            let roles = {
+                "mafia": $("#mafia").val(),
+                "town": $("#town").val(),
+                "detective": $("#detective").val(),
+                "healer": $("#healer").val(),
+                "witch": $("#witch").val(),
+                "hunter": $("#hunter").val(),
+                "turkey": $("#turkey").val()
+            }
+
+            let code = $("#code").val();
+
+            roles = JSON.stringify(roles);
+
+            $.get("/api/createRoles", { roles, code }, async (data) => {
+                
+                if(data.success) {
+
+                    await removeAllChildren("#role-assignment");
+                    
+                    let { assignment } = data;
+                    for(const name in assignment) {
+                        $("#role-assignment").append('<p class="text-center">' + name + ' - ' + assignment[name].toUpperCase() + '</p>');
+                    }
+                }
+            });
+        });
+
+        // regularly update the server
         setInterval(() => {
             
             let roles = {
@@ -20,7 +53,9 @@
                 "town": $("#town").val(),
                 "detective": $("#detective").val(),
                 "healer": $("#healer").val(),
-                "witch": $("#witch").val()
+                "witch": $("#witch").val(),
+                "hunter": $("#hunter").val(),
+                "turkey": $("#turkey").val()
             }
             
             let code = $("#code").val();
@@ -98,6 +133,29 @@
                             <input type="number" class="form-control" id="witch" name="witch" value="1" placeholder="Number of Witches">
                         </div>
                     </div>
+                    <div class="form-group row">
+                        <label for="hunter" class="col-sm-4 col-form-label">Hunter</label>
+                        <div class="col-sm-8">
+                            <input type="number" class="form-control" id="hunter" name="hunter" value="1" placeholder="Number of Hunters">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="turkey" class="col-sm-4 col-form-label">Turkey</label>
+                        <div class="col-sm-8">
+                            <input type="number" class="form-control" id="turkey" name="turkey" value="1" placeholder="Number of Turkeys">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-lg btn-block mt-4" id="create-roles">Create Roles</button>
+
+        <div class="mt-3">
+            <div class="container custom-rounded bg-white pb-5">
+                <h1 class="text-center">Rolelist:</h1>
+                <div id="role-assignment">
+                    <p class="text-center">No Roles Assigned</p>
                 </div>
             </div>
         </div>

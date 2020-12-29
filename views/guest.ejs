@@ -6,6 +6,7 @@
 
 	$(document).ready(function () {
         
+        // function to remove all children
         function removeAllChildren(selector) {
             const parent = document.querySelector(selector);
             while (parent.firstChild) {
@@ -13,13 +14,16 @@
             }
         }
 
+        let name = "<%= name %>";
+
+        // regularly update information from server
         setInterval(() => {
             
             let code = $("#code").val();
 
-            $.get("/api/guestUpdate", { code }, async (data) => {
+            $.get("/api/guestUpdate", { code, name }, async (data) => {
                 
-                let { players, roles } = data;
+                let { players, roles, assignment } = data;
 
                 // update players
                 await removeAllChildren("#players");
@@ -38,6 +42,11 @@
                 for (const [role, number] of Object.entries(roles)) {
                     $("#roles").append('<p class="text-center">' + role.toUpperCase() + ' - ' + number + '</p>');
                 }
+
+                // check if assigned role
+                if(assignment) {
+                    $("#show-role").text("Your Role: " + assignment.toUpperCase());
+                }
             });
 
         }, 1000);
@@ -45,12 +54,12 @@
 	});
 </script>
 
-<h2 class="display-3 text-center mt-5 mb-2">Play Mafia</h2>
+<h2 class="display-3 text-center mt-5 mb-2"><%= name %></h2>
 
 <div class="jumbotron container">
 
     <h1 class="text-center">Code: <span class="badge badge-pill badge-primary"><%= code %></span></h1>
-    <h3 class="text-center">Waiting for host...</h3>
+    <h3 class="text-center" id="show-role">Waiting for host...</h3>
     <input type="hidden" id="code" value="<%= code %>">
 
     <div class="container mt-3">
