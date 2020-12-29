@@ -1,6 +1,7 @@
 // IMPORTS AND SETUP
 const express = require('express');
 const cache = require('memory-cache');
+const { assignRoles } = require('./helpers/roles');
 
 const PORT = process.env.PORT || 3000;
 const app = express();
