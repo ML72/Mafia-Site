@@ -20,7 +20,7 @@ function assignRoles(rolelist, players) {
         if(roles[i]) {
             assignment[players[i]] = roles[i];
         } else {
-            assignment[players[i]] = "Town";
+            assignment[players[i]] = "town";
         }
     }
 

@@ -27,7 +27,8 @@ app.get("/api/hostUpdate", async (req, res) => {
 
         room = {
             players: room.players,
-            roles: roles
+            roles: roles,
+            assignment: room.assignment
         }
 
         rooms.put(code, room, 6*60*60*1000, function(key, value) {
@@ -44,15 +45,60 @@ app.get("/api/hostUpdate", async (req, res) => {
 
 app.get("/api/guestUpdate", async (req, res) => {
 
-    let { code } = req.query;
+    let { code, name } = req.query;
     let room = await rooms.get(code);
 
     if(room) {
-        res.json(room);
+        
+        let assignment = (room.assignment && room.assignment[name]) ? room.assignment[name] : "";
+
+        res.json({
+            players: room.players,
+            roles: room.roles,
+            assignment
+        });
     } else {
         res.json({
             players: [],
-            roles: {}
+            roles: {},
+            assignment: ""
+        });
+    }
+});
+
+app.get("/api/createRoles", async (req, res) => {
+
+    let { roles, code } = req.query;
+    roles = JSON.parse(roles);
+    let room = await rooms.get(code);
+
+    if(room) {
+        
+        Object.keys(roles).forEach((role) => {
+            if(parseInt(roles[role]) < 0) {
+                roles[role] = "" + 0;
+            }
+        });
+
+        let assignment = await assignRoles(roles, room.players);
+
+        room = {
+            players: room.players,
+            roles,
+            assignment
+        }
+
+        rooms.put(code, room, 6*60*60*1000, function(key, value) {
+            console.log('Room with code ' + code + ' has closed');
+        });
+
+        res.json({
+            success: true,
+            assignment
+        })
+    } else {
+        res.json({
+            success: false
         });
     }
 });
@@ -75,7 +121,8 @@ app.get("/new", (req, res) => {
     // store code as new game in memory cache
     rooms.put(code, {
         roles: {},
-        players: []
+        players: [],
+        assignment: {}
     }, 6*60*60*1000, function(key, value) {
         console.log('Room with code ' + code + ' has closed');
     });
@@ -107,12 +154,13 @@ app.get("/game/:code", (req, res) => {
 
         rooms.put(code, {
             roles: room.roles,
-            players: [ name, ...room.players ]
+            players: [ name, ...room.players ],
+            assignment: room.assignment
         }, 6*60*60*1000, function(key, value) {
             console.log('Room with code ' + code + ' has closed');
         });
     
-        res.render(__dirname + '/views/guest.ejs', { pageName: "Game " + code, code });
+        res.render(__dirname + '/views/guest.ejs', { pageName: "Game " + code + " - " + name, code, name });
     }
 });
 
