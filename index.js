@@ -20,7 +20,7 @@ app.get("/api/hostUpdate", async (req, res) => {
     if(room) {
         
         Object.keys(roles).forEach((role) => {
-            if(parseInt(roles[role]) < 0) {
+            if(!roles[role] || parseInt(roles[role]) < 0) {
                 roles[role] = "" + 0;
             }
         });
